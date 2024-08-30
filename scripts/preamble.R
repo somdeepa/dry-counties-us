@@ -7,10 +7,11 @@
 packages = c(
   "foreign", "haven", "readxl", # reading foreign files
   "dplyr", "tidyr", "readr", "purrr",   # data cleaning
-  "lubridate", # dates
-  "stringr", 
-  "pdftools", "tesseract", "rvest", # scraping data
+  "lubridate", # dates manipulation
+  "stringr", # string manipulation
+  "pdftools", "tesseract", "rvest", # scraping data from wedpage/pdf
   "httr", "jsonlite", # downloading data through API
+  "network", "igraph", "ggnetwork", # network diagrams
   "modelsummary",  # regression tables
   "sf",         # reading spatial data
   "ggplot2", "patchwork", "paletteer",   # plotting
