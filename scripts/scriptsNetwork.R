@@ -69,7 +69,7 @@ create_dependency_graph <- function(dependencies) {
   }))
   
   edges = edges %>% 
-    group_by(from, to) %>% 
+    group_by(from, to) %>%
     count() %>% 
     ungroup()
   
