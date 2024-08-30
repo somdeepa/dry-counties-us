@@ -253,7 +253,7 @@ county_panel_all_licenses = left_join(all_combinations, business_active, by = "c
     adjusted_year = round(year/10)*10
   )
 
-write.csv(county_panel_all_licenses, "data/clean/liquor-licenses/quarterly_county_panel_all_licenses", row.names = F)
+write.csv(county_panel_all_licenses, "data/clean/liquor-licenses/quarterly_county_panel_all_licenses.csv", row.names = F)
 
 ## BY OFF/ON
 
@@ -282,7 +282,7 @@ county_panel_licenses_types = left_join(all_combinations, business_active, by = 
     adjusted_year = round(year/10)*10
   )
 
-write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/quarterly_county_panel_off_on", row.names = F)
+write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/quarterly_county_panel_off_on.csv", row.names = F)
 
 ## BY CATEGORy_DETAIL
 
@@ -311,7 +311,7 @@ county_panel_licenses_types = left_join(all_combinations, business_active, by = 
     adjusted_year = round(year/10)*10
   )
 
-write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/quarterly_county_panel_categories", row.names = F)
+write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/quarterly_county_panel_categories.csv", row.names = F)
 
 
 ##-----------
@@ -432,7 +432,7 @@ county_panel_all_licenses = left_join(all_combinations, business_active, by = "c
     adjusted_year = round(year/10)*10
   )
 
-write.csv(county_panel_all_licenses, "data/clean/liquor-licenses/county_panel_all_licenses", row.names = F)
+write.csv(county_panel_all_licenses, "data/clean/liquor-licenses/county_panel_all_licenses.csv", row.names = F)
 
 ## BY OFF/ON
 
@@ -459,7 +459,7 @@ county_panel_licenses_types = left_join(all_combinations, business_active, by = 
     adjusted_year = round(year/10)*10
   )
 
-write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/county_panel_off_on", row.names = F)
+write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/county_panel_off_on.csv", row.names = F)
 
 ## BY CATEGORy_DETAIL
 
@@ -486,4 +486,4 @@ county_panel_licenses_types = left_join(all_combinations, business_active, by = 
     adjusted_year = round(year/10)*10
   )
 
-write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/county_panel_categories", row.names = F)
+write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/county_panel_categories.csv", row.names = F)
