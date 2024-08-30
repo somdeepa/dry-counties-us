@@ -25,10 +25,7 @@ policychanges = policychanges %>%
     id = seq(1:nrow(policychanges))
   )
 
-# Counties dry at the end of 2019
-dry_counties = c("Borden", "Kent", "Throckmorton", "Hemphill", "Roberts")
-
-# select 
+write.csv(policychanges, "data/clean/merged/treated_cities.csv", row.names = F)
 
 # Merge for CITY-QUARTER-ALL
 
