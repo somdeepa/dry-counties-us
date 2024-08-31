@@ -59,3 +59,4 @@ ggplot(combined_data, aes(x = year, y = total_businesses, color = category, grou
     legend.position = "bottom"
   )
 ggsave("results/weekly updates/4-9/licenses_over_time_retail_only_treated_only.png", device = "png")
+
