@@ -33,8 +33,6 @@ if(any(result$expected<5)){
 ##                  Alcohol licenses exploration                 -
 ##----------------------------------------------------------------
 
-
-
 total_businesses_per_year = read.csv("data/clean/liquor-licenses/total_businesses_by_year_1990_2019.csv")
 # Aggregate total number of businesses per year for each category across all counties
 businesses_per_category = read.csv("data/clean/liquor-licenses/total_businesses_by_year_category_detail_1990_2019.csv")
@@ -59,9 +57,39 @@ ggplot(combined_data, aes(x = year, y = total_businesses, color = category_detai
     legend.position = "bottom"
   )
 
-ggsave("results/weekly updates/13-08/licenses_times_series)categories.png", device = "png")
+ggsave("results/weekly updates/13-08/licenses_times_series_categories.png", device = "png")
 
+# per capita version
 
+# unit: 1000s of persons
+texas_population = read.csv("data/raw/population/All_Texas_popualtion_1990-2019.csv") %>% 
+  mutate(
+    year = year(DATE),
+    population = TXPOP
+  ) %>% 
+  select(year, population)
+
+combined_data = combined_data %>% 
+  left_join(texas_population, by = "year") %>% 
+  mutate(licenses_rate = total_businesses/population)
+
+ggplot(combined_data, aes(x = year, y = licenses_rate, color = category_detail, group = category_detail)) +
+  geom_line(size =0.8) +
+  geom_point(aes(shape = category_detail), size = 1.5) +
+  labs(
+    x = "",
+    y = "",
+    title = "Alcohol Licenses per 1000 population in Texas, 1990-2019"
+  ) +
+  theme_bw() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+ggsave("results/weekly updates/13-08/licenses_times_series_per_capita_categories.png", device = "png")
+
+# OFF/ON
 
 total_businesses_per_year = read.csv("data/clean/liquor-licenses/total_businesses_by_year_1990_2019.csv")
 # Aggregate total number of businesses per year for each category across all counties
@@ -86,6 +114,25 @@ ggplot(combined_data, aes(x = year, y = total_businesses, color = category, grou
     legend.title = element_blank(),
     legend.position = "bottom"
   )
-
 ggsave("results/weekly updates/13-08/licenses_over_time_retail_only.png", device = "png")
+
+combined_data = combined_data %>% 
+  left_join(texas_population, by = "year") %>% 
+  mutate(licenses_rate = total_businesses/population)
+
+ggplot(combined_data, aes(x = year, y = licenses_rate, color = category, group = category)) +
+  geom_line(size =0.8) +
+  geom_point(aes(shape = category), size = 1.5) +
+  labs(
+    x = "",
+    y = "",
+    title = "Retail Alcohol Licenses per 1000 population in Texas, 1990-2019"
+  ) +
+  theme_bw() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+ggsave("results/weekly updates/13-08/licenses_over_time_retail_only_per_capita.png", device = "png")
 
