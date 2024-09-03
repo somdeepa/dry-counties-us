@@ -73,12 +73,14 @@ license_information = read_excel("data/clean/merged/license-categories.xlsx")
 
 liquor_licenses = bind_rows(pre2012, post2012) %>% 
   mutate(
-    city = tolower(city)
+    city = tolower(city),
+    city = str_remove_all(city, "village of | city| village| town"),
   ) %>% 
   left_join(., license_information, by = "license_type")
 
 # Three pairs of municipalities share the same name: Lakeside, Oak Ridge, and Reno
 # will modify city name to reflect this
+# Also resolve duplicate cities with different spellings
 
 duplicate_cities = c("lakeside", "oak ridge", "reno")
 
@@ -88,10 +90,10 @@ liquor_licenses = liquor_licenses %>%
     city = ifelse(city %in% duplicate_cities, str_c(city, " (", county, ")"), city),
   )
 
-
 write.csv(liquor_licenses, "data/clean/liquor-licenses/all-liquor-licenses.csv", row.names = F)
 
-# get active years of each license in the data
+# Aim: get active years of each license in the data
+# Include flags for start and stop
 # Note: panel at the license level, not the business level
 
 business_active = liquor_licenses %>% 

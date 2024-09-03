@@ -5,7 +5,7 @@
 ##                    All licenses, quarterly                   -
 ##---------------------------------------------------------------
 
-data = read.csv("data/clean/merged/all_licenses_city_quarter.csv") 
+data = read.csv("data/clean/merged/licenses-elections/all_licenses_city_quarter.csv") 
 
 # simple TWFE : Effect of treatment on licenses/population*1000
 
@@ -67,7 +67,7 @@ ggsave("results/area-exam/license_event_study_raw_data_all_licenses.png", device
 ##                    On-premise, Quarterly                     -
 ##---------------------------------------------------------------
 
-data = read.csv("data/clean/merged/on_premise_licenses_city_quarter.csv") 
+data = read.csv("data/clean/merged/licenses-elections/on_premise_licenses_city_quarter.csv") 
 
 # simple TWFE : Effect of treatment on licenses/population*1000
 
@@ -128,7 +128,7 @@ ggsave("results/area-exam/license_event_study_raw_data_on_premise_quaterly.png",
 ##                    Off-premise, Quarterly                    -
 ##---------------------------------------------------------------
 
-data = read.csv("data/clean/merged/off_premise_licenses_city_quarter.csv") 
+data = read.csv("data/clean/merged/licenses-elections/off_premise_licenses_city_quarter.csv") 
 
 # simple TWFE : Effect of treatment on licenses/population*1000
 

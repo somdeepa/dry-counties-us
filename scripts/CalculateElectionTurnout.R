@@ -28,7 +28,7 @@ votingbycounty = read.csv("data/clean/voting/voter-turnout-by-county-texas-1988-
 
 votingall = read.csv("data/clean/voting/1970-2022-turnout-texas-all.csv")
 
-crosswalk_citynames = read.csv("data/clean/merged/city_name_crosswalk.csv")
+crosswalk_citynames = read.csv("data/clean/city-name-xwalk/city_name_crosswalk.csv")
 
 
 ##------------------------------------------------------------------

@@ -42,7 +42,7 @@ businesses_by_year_category = do.call(rbind, lapply(years, function(x) count_act
 
 write.csv(businesses_by_year_category, "data/clean/liquor-licenses/total_businesses_by_year_category_1990_2019.csv", row.names = F)
 
-## BY CATEGORy_DETAIL
+## BY CATEGORY_DETAIL
 
 all_combinations = expand.grid(
   license_type = unique(business_active$category_detail),
@@ -79,11 +79,11 @@ city_panel_all_licenses = left_join(all_combinations, business_active, by = "cit
   mutate(start_quarter = ifelse(is.na(start_quarter), startQuarter, start_quarter),
          stop_quarter = ifelse(is.na(stop_quarter), endQuarter, stop_quarter),
          # Create a flag for active businesses
-         active = between(quarter, start_quarter, stop_quarter)) %>%
+         active = between(quarter, start_quarter, stop_quarter)) %>% 
   # Filter active businesses
-  filter(active) %>%
-  # Group by county and quarter and count businesses
-  group_by(city, quarter) %>%
+  filter(active) %>% 
+  # Group by city and quarter and count businesses
+  group_by(city, quarter) %>% 
   summarise(total_businesses = n(), .groups = 'drop') %>%
   # Fill in missing combinations with 0
   complete(city, quarter = seq(startQuarter, endQuarter), fill = list(total_businesses = 0) ) %>% 
@@ -97,27 +97,29 @@ write.csv(city_panel_all_licenses, "data/clean/liquor-licenses/quarterly_city_pa
 
 ## BY OFF/ON
 
-all_combinations = expand.grid(
-  city = unique(business_active$city),
-  category = unique(business_active$category),
-  quarter = quarters
-) %>% 
-  mutate(
-    year = startYear + floor(quarter/4),
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
-  )
+# only retail licenses
 
-city_panel_licenses_types = left_join(all_combinations, business_active, by = c("city", "category")) %>%
+business_active_retail = business_active %>% 
+  filter(!is.na(category))
+
+all_combinations = expand.grid(
+  city = unique(business_active_retail$city),
+  category = unique(business_active_retail$category),
+  quarter = quarters
+) 
+
+city_panel_licenses_types = left_join(all_combinations, business_active_retail, by = c("city", "category")) %>% 
+  # some NAs get created (why I do not fully understand), filter them out
+  filter(!is.na(combined_number)) %>% 
   # Fill missing start_quarter and stop_quarter with 2003 and 2019 respectively
   mutate(start_quarter = ifelse(is.na(start_quarter), startQuarter, start_quarter),
          stop_quarter = ifelse(is.na(stop_quarter), endQuarter, stop_quarter),
          # Create a flag for active businesses
-         active = between(quarter, start_quarter, stop_quarter)) %>%
+         active = between(quarter, start_quarter, stop_quarter)) %>% 
   # Filter active businesses
-  filter(active) %>%
+  filter(active) %>% 
   # Group by county and quarter and count businesses
-  group_by(city, category, quarter) %>%
+  group_by(city, category, quarter) %>% 
   summarise(total_businesses = n(), .groups = 'drop') %>%
   # Fill in missing combinations with 0
   complete(city, category, quarter = seq(startQuarter, endQuarter), fill = list(total_businesses = 0)) %>% 
@@ -129,7 +131,8 @@ city_panel_licenses_types = left_join(all_combinations, business_active, by = c(
 
 write.csv(city_panel_licenses_types, "data/clean/liquor-licenses/quarterly_city_panel_off_on.csv", row.names = F)
 
-## BY CATEGORy_DETAIL
+## BY CATEGORY
+
 all_combinations = expand.grid(
   city = unique(business_active$city),
   category_detail = unique(business_active$category_detail),
@@ -157,7 +160,7 @@ city_panel_licenses_types = left_join(all_combinations, business_active, by = c(
 
 write.csv(city_panel_licenses_types, "data/clean/liquor-licenses/quarterly_city_panel_categories.csv", row.names = F)
 
-
+# NOTE : ALL CODE FROM HERE SHOULD BE UPDATED 
 
 # COUNTY LEVEL
 

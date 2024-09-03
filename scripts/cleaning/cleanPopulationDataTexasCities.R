@@ -92,7 +92,10 @@ temp1 = left_join(temp, wikipedia_cities, by = "city")
 
 texas_cities_population = texas_cities_population %>% 
   left_join(temp1, by = "city") %>% 
-  mutate(county = ifelse(is.na(county), final_county, county)) %>% 
-  select(-final_county)
+  mutate(county = ifelse(is.na(county), final_county, county),
+         # changes 0's to NA (population of 0 treated as missing data)
+         population = ifelse(population == 0, NA, population)) %>% 
+  select(-final_county) %>% 
+  distinct(city, population, .keep_all = TRUE) # some rows in this data are duplicates
 
 write.csv(texas_cities_population, "data/clean/population/texas_population_by_cities_decennial.csv", row.names = F)  
