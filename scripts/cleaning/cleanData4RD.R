@@ -3,16 +3,20 @@
 ##               CLEAN DATA FOR R-D STYLE GRAPHS               ##
 #################################################################
 
-I will select elections according to the following criteria -
-- ALL ELECTIONS
-- cities only for now
-- Note- FOR NOW I AM CONSIDERING "DUPLLICATE" ELECTIONS
-(Which happen in the same geography same year)
+# I will select elections according to the following criteria -
+# - ALL ELECTIONS
+# - cities only for now
+# - Note- FOR NOW I AM CONSIDERING "DUPLLICATE" ELECTIONS
+# (Which happen in the same geography same year)
+
+# Load data
 
 elections = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv") %>% 
   filter(!is.na(city))
 
 crosswalk_citynames = read.csv("data/clean/merged/city_name_crosswalk.csv")
+
+populationdata = read.csv("data/clean/population/texas_population_by_cities_decennial.csv")
 
 # Merge for CITY-QUARTER-ALL
 
@@ -28,16 +32,16 @@ all_combinations = expand.grid(
 final_panel = all_combinations %>% 
   # join license data
   left_join(city_licenses_panel, join_by(city == electiondata, quarter)) %>% 
-  # add policy changes
-  left_join(policychanges, by = "city") %>% 
+  # change NAs to 0 (Missing data here => true zeros)
+  mutate(total_businesses = ifelse(is.na(total_businesses), 0, total_businesses)) %>% 
   # add population figure
   left_join(populationdata, join_by(popdata == city, adjusted_year == year)) %>% 
   mutate(
     # calculate licenses per 1000 population
     licensepop = total_businesses/population*1000,
-    periods_from_treatment = quarter - first_policy_change_quarter
+    #periods_from_treatment = quarter - first_policy_change_quarter
   ) %>% 
   group_by(city) %>% 
-  filter(n()<=116) %>% 
+  #filter(n()<=116) %>% 
   ungroup() %>% 
   filter(!is.infinite(licensepop))
