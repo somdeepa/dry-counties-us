@@ -5,11 +5,7 @@
 
 crosswalk_cityname_election = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_electiondata.csv")
 
-electiondata = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv") %>% 
-  mutate(
-    election_date = as.Date(election_date, format = "%Y-%m-%d"),
-    election_year = year(election_date)
-  )
+electiondata = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv")
 
 crosswalk_cityname_popdata = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_popdata.csv")
 
@@ -18,6 +14,11 @@ populationdata = read.csv("data/clean/population/texas_population_by_cities_dece
 
 policychanges = electiondata %>% 
   filter(!is.na(city) & result == "passed" & status_before == "dry") %>% 
+  mutate(
+    # clean up dates
+    election_date = as.Date(election_date, format = "%Y-%m-%d"),
+    election_year = year(election_date),
+  )
   group_by(city) %>% 
   summarise(
     first_policy_change = min(election_year),

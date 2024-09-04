@@ -82,13 +82,13 @@ create_dependency_graph <- function(dependencies) {
   
   g = graph_from_data_frame(edges, directed = T, vertices)
   
-  g = set_edge_attr(g, "weight", value = edges$n)
+  # g = set_edge_attr(g, "weight", value = edges$n)
   
 
   V(g)$degree <- degree(g, mode = "in")
   
   ggraph(g, layout="fr") +
-    geom_edge_link(aes(alpha = n, end_cap = circle(node2.degree + 2, "pt")), width = 1, color = "grey30",
+    geom_edge_link(aes(end_cap = circle(node2.degree + 1, "pt")), width = 1, color = "grey",
                    arrow = arrow(
                      angle = 20,
                      length = unit(0.1, "inches"),
