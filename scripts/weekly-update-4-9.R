@@ -67,14 +67,17 @@ ggsave("results/weekly updates/4-9/licenses_over_time_retail_only_treated_only.p
 
 data = read.csv("data/clean/merged/licenses-elections/RDpanel_quaterly_city.csv")
 
-time_periods = seq(-1, 1)
+time_periods = seq(-1, 4)
 
 temp = data %>% 
   filter(
-    periods_from_treatment %in% time_periods
+    periods_from_election %in% time_periods
   ) %>% 
+  filter(for_vote_share<1)
+  #mutate(for_vote_share = floor(for_vote_share*100/5)*5) %>% 
+  filter(between(for_vote_share, 40, 60))
   # rounding down vote shares
-  mutate(for_vote_share = floor(for_vote_share*100)) %>% 
+  
   group_by(for_vote_share, periods_from_treatment) %>% 
     summarise(
       n = n(),
@@ -86,13 +89,13 @@ temp = data %>%
 
 
 ggplot(temp) +
-  #geom_line(aes(x = for_vote_share, y = mean_licensepop))+
+  geom_vline(xintercept = .5, linetype = "dashed", color = "red", linewidth = 0.5) +
   #geom_errorbar(mapping = aes(x = for_vote_share, ymin = Lower, ymax = Upper),
-                width = 0.3, linewidth =0.5) +
-  geom_point(aes(x = for_vote_share, y = mean_licensepop), size = 2, shape = 21, fill = "black") +
+  #              width = 0.3, linewidth =0.5) +
+  geom_point(aes(x = for_vote_share, y = licensepop), size = 1, shape = 21, fill = "grey") +
   #scale_y_continuous(breaks = seq(0,2, 0.2)) +
   #scale_x_continuous(breaks = seq(20,100, 5)) +
-  labs(x = "For vote percentage",
+  labs(x = "For vote share",
        y = "Licenses per 1000 population") +
-  facet_wrap(~periods_from_treatment, ncol = 1) +
-  theme_minimal()
+  facet_wrap(~periods_from_election, ncol = 3) +
+  theme_bw()

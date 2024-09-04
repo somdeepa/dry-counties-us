@@ -22,6 +22,9 @@ electiondata = read.csv("data/clean/elections-data/elections-data-97-2020-cleane
     # clean up dates
     election_date = as.Date(election_date, format = "%Y-%m-%d"),
     election_year = year(election_date),
+    
+    # calculate vote share
+    for_vote_share = for_vote/(for_vote+against_vote)
   ) %>% 
   left_join(crosswalk_cityname_election, join_by(city == electiondata))
 
@@ -48,7 +51,7 @@ city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_
 
 elections = electiondata %>% 
   mutate(
-    first_policy_change_quarter = sapply(election_date, convert_to_quarter)
+    election_quarter = sapply(election_date, convert_to_quarter)
 )
 
 final_panel = elections %>% 
@@ -62,7 +65,7 @@ final_panel = elections %>%
     # calculate licenses per 1000 population
     licensepop = total_businesses/population*1000,
     # create event study dummy
-    periods_from_treatment = quarter - first_policy_change_quarter
+    periods_from_election = quarter - election_quarter
   )
 
 write.csv(final_panel, "data/clean/merged/licenses-elections/RDpanel_quaterly_city.csv", row.names = F)
