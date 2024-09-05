@@ -14,7 +14,7 @@
 crosswalk_cityname_election = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_electiondata.csv")
 
 electiondata = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv") %>% 
-  filter(!is.na(city)) %>% 
+  filter(!is.na(city) & status_before == "dry") %>% 
   mutate(
     # add an ID for each election
     id = seq(1, nrow(.)),

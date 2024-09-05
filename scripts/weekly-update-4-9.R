@@ -63,39 +63,55 @@ ggsave("results/weekly updates/4-9/licenses_over_time_retail_only_treated_only.p
 
 ##----------------------------------------------------------------
 ##                        R-D style graphs                       -
-##----------------------------------------------------------------
+##---------------------------------------------------------------
 
 data = read.csv("data/clean/merged/licenses-elections/RDpanel_quaterly_city.csv")
 
-time_periods = seq(-1, 4)
+time_periods = seq(-3,8)
 
+bin = 1
 temp = data %>% 
   filter(
     periods_from_election %in% time_periods
   ) %>% 
-  filter(for_vote_share<1)
-  #mutate(for_vote_share = floor(for_vote_share*100/5)*5) %>% 
-  filter(between(for_vote_share, 40, 60))
-  # rounding down vote shares
-  
-  group_by(for_vote_share, periods_from_treatment) %>% 
+  #(!city %in% c("Winona", "Coffee City") ) %>% 
+  #filter(licensepop<5) %>% 
+  #filter(for_vote_share<.92) %>% 
+  # binning vote shares
+  mutate(for_vote_share = floor(for_vote_share*100/bin)*bin) %>% 
+  #filter(for_vote_share==94) %>% 
+  filter(between(for_vote_share, 20, 80)) %>% 
+  group_by(for_vote_share, periods_from_election) %>% 
     summarise(
       n = n(),
       mean_licensepop = mean(licensepop, na.rm = T),
       Lower = mean_licensepop - 1.96*sd(licensepop, na.rm=T)/sqrt(n()),
       Upper = mean_licensepop + 1.96*sd(licensepop, na.rm=T)/sqrt(n()),
     )
+  
 
 
 
 ggplot(temp) +
-  geom_vline(xintercept = .5, linetype = "dashed", color = "red", linewidth = 0.5) +
+  geom_vline(xintercept = 50, linetype = "dashed", color = "red", linewidth = 0.5) +
+  geom_hline(yintercept = 0) +
   #geom_errorbar(mapping = aes(x = for_vote_share, ymin = Lower, ymax = Upper),
-  #              width = 0.3, linewidth =0.5) +
-  geom_point(aes(x = for_vote_share, y = licensepop), size = 1, shape = 21, fill = "grey") +
-  #scale_y_continuous(breaks = seq(0,2, 0.2)) +
-  #scale_x_continuous(breaks = seq(20,100, 5)) +
-  labs(x = "For vote share",
-       y = "Licenses per 1000 population") +
-  facet_wrap(~periods_from_election, ncol = 3) +
-  theme_bw()
+  #             width = 0.3, linewidth =0.5) +
+  geom_point(aes(x = for_vote_share, y = mean_licensepop), size = 1, shape = 21, fill = "grey") +
+  geom_smooth(aes(x = for_vote_share, y = mean_licensepop), 
+              method = "lm", formula = y ~ x, 
+              data = subset(temp, for_vote_share < 50), 
+              color = "black", se = T) +
+  geom_smooth(aes(x = for_vote_share, y = mean_licensepop), 
+              method = "lm", formula = y ~ x, 
+              data = subset(temp, for_vote_share >= 50), 
+              color = "black", se = T) +
+  labs(x = "For vote percentage",
+       y = "Licenses per 1000 population",
+       title = "Licenses per 1000 population plotted against vote share in elections",
+       caption = "Note: Scatter plot of 1 percent bin averages of the for vote percentage in local options elections, overlaid with separate fitted lines on each side of the cutoff (50 percent).") +
+  facet_wrap(~periods_from_election, ncol = 3,
+             labeller = labeller(periods_from_election = function(x) {
+               paste("Quarters from election =", x)
+             })) +
+  theme_bw(base_size = 16)
