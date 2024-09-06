@@ -67,7 +67,7 @@ ggsave("results/weekly updates/4-9/licenses_over_time_retail_only_treated_only.p
 
 data = read.csv("data/clean/merged/licenses-elections/RDpanel_quaterly_city.csv")
 
-time_periods = seq(-3,8)
+time_periods = c(-1,3)
 
 bin = 1
 temp = data %>% 
@@ -108,7 +108,6 @@ ggplot(temp) +
               color = "black", se = T) +
   labs(x = "For vote percentage",
        y = "Licenses per 1000 population",
-       title = "Licenses per 1000 population plotted against vote share in elections",
        caption = "Note: Scatter plot of 1 percent bin averages of the for vote percentage in local options elections, overlaid with separate fitted lines on each side of the cutoff (50 percent).") +
   facet_wrap(~periods_from_election, ncol = 3,
              labeller = labeller(periods_from_election = function(x) {
