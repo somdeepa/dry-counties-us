@@ -18,7 +18,7 @@ policychanges = electiondata %>%
     # clean up dates
     election_date = as.Date(election_date, format = "%Y-%m-%d"),
     election_year = year(election_date),
-  )
+  ) %>% 
   group_by(city) %>% 
   summarise(
     first_policy_change = min(election_year),

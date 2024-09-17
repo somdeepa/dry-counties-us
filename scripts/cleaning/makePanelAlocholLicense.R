@@ -65,17 +65,23 @@ write.csv(businesses_by_year_category_detail, "data/clean/liquor-licenses/total_
 ##  BY QUARTER  
 ##--------------
 
+## NOTE: including a line of code to filter out all non-retail licenses, as well
+# as "private-club' licenses. Comment out to generate panels with all licenses
+
+business_active_retail = business_active %>% 
+  filter(!is.na(category) & category_detail!="Private Club")
+
 # CITY LEVEL
 
 ## ALL CATEGORIES
 
 all_combinations = expand.grid(
-  city = unique(business_active$city),
+  city = unique(business_active_retail$city),
   quarter = quarters
 ) 
 
 # make panel by city
-city_panel_all_licenses = left_join(all_combinations, business_active, by = "city") %>% 
+city_panel_all_licenses = left_join(all_combinations, business_active_retail, by = "city") %>% 
   mutate(start_quarter = ifelse(is.na(start_quarter), startQuarter, start_quarter),
          stop_quarter = ifelse(is.na(stop_quarter), endQuarter, stop_quarter),
          # Create a flag for active businesses
@@ -96,8 +102,6 @@ city_panel_all_licenses = left_join(all_combinations, business_active, by = "cit
 write.csv(city_panel_all_licenses, "data/clean/liquor-licenses/quarterly_city_panel_all_licenses.csv", row.names = F)
 
 ## BY OFF/ON
-
-# only retail licenses
 
 business_active_retail = business_active %>% 
   filter(!is.na(category))

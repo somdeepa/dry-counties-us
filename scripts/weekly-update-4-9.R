@@ -67,7 +67,7 @@ ggsave("results/weekly updates/4-9/licenses_over_time_retail_only_treated_only.p
 
 data = read.csv("data/clean/merged/licenses-elections/RDpanel_quaterly_city.csv")
 
-time_periods = c(-1,3)
+time_periods = c(-1,4)
 
 bin = 1
 temp = data %>% 
@@ -79,8 +79,8 @@ temp = data %>%
   #filter(for_vote_share<.92) %>% 
   # binning vote shares
   mutate(for_vote_share = floor(for_vote_share*100/bin)*bin) %>% 
-  #filter(for_vote_share==94) %>% 
-  filter(between(for_vote_share, 20, 80)) %>% 
+  #filter(for_vote_share==31)
+  #filter(between(for_vote_share, 20, 80)) %>% 
   group_by(for_vote_share, periods_from_election) %>% 
     summarise(
       n = n(),
@@ -93,7 +93,7 @@ temp = data %>%
 
 
 ggplot(temp) +
-  geom_vline(xintercept = 50, linetype = "dashed", color = "red", linewidth = 0.5) +
+  #geom_vline(xintercept = 50, linetype = "dashed", color = "red", linewidth = 0.5) +
   geom_hline(yintercept = 0) +
   #geom_errorbar(mapping = aes(x = for_vote_share, ymin = Lower, ymax = Upper),
   #             width = 0.3, linewidth =0.5) +
@@ -107,10 +107,11 @@ ggplot(temp) +
               data = subset(temp, for_vote_share >= 50), 
               color = "black", se = T) +
   labs(x = "For vote percentage",
-       y = "Licenses per 1000 population",
-       caption = "Note: Scatter plot of 1 percent bin averages of the for vote percentage in local options elections, overlaid with separate fitted lines on each side of the cutoff (50 percent).") +
+       y = "Licenses per 1000 population") +
   facet_wrap(~periods_from_election, ncol = 3,
              labeller = labeller(periods_from_election = function(x) {
                paste("Quarters from election =", x)
              })) +
   theme_bw(base_size = 16)
+
+ggsave("results/weekly updates/11-9/rd_style_full.png", device = "png")

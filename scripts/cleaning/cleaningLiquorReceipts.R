@@ -53,28 +53,20 @@ post2007 = read.csv("data/raw/liquor-taxes/Mixed_Beverage_Gross_Receipts_2024090
     Responsibility.End.Date = as.Date(as.character(Responsibility.End.Date), format = "%m/%d/%Y"),
     Obligation.End.Date = as.Date(as.character(Obligation.End.Date), format = "%m/%d/%Y")
   ) %>% 
-  filter(year(Obligation.End.Date) != 2007)
+  filter(year(Obligation.End.Date) != 2007) # double counting 2007 so filter it out
 
 joined_data = bind_rows(pre2007, post2007) %>% 
   distinct() %>% 
   mutate(
-    year = year(Obligation.End.Date)
+    year = year(Obligation.End.Date),
+    month = month(Obligation.End.Date)
+  ) %>% 
+  # wide-to-long
+  pivot_longer(
+    cols = ends_with("Receipts"),
+    names_to = "type",
+    values_to = "receipts",
+    names_transform = list(type = ~gsub(".Receipts", "", .))
   )
 
-summarytable = joined_data %>% 
-  group_by(year) %>% 
-  summarise(
-    count = n(),
-    Total = sum(Total.Receipts, na.rm = T)
-  )
-
-ggplot(summarytable, aes(x = year, y = Total)) +
-  geom_line(color = "blue", size = 1) +
-  geom_point(color = "blue", size = 2) +
-  labs(
-    title = "Total Receipts by Year",
-    x = "Year",
-    y = "Total Receipts"
-  ) +
-  theme_minimal()
-0
+saveRDS(joined_data, "data/clean/liquor-taxes/liquor-receipts.rds")
