@@ -13,6 +13,29 @@ populationdata = read.csv("data/clean/population/texas_population_by_cities_dece
 
 liquor_licenses = read.csv("data/clean/liquor-licenses/all-liquor-licenses.csv")
 
+liquor_receipts = readRDS("data/clean/liquor-taxes/liquor-receipts.rds")
+
+crashes_data = read.csv("data/clean/outcomes/crashes/texas_crashes_by_cities_2003_2019.csv")
+
+# Cities from crashes file
+
+crashes_cities = data.frame(crashesdata = unique(tolower(crashes_data$city)))
+crashes_cities$keyformerge = tolower(crashes_cities$crashesdata) %>% 
+  str_remove_all("village of | city| village| town")
+crashes_cities[crashes_cities$keyformerge=="aurora (wise)",2] = "aurora" 
+crashes_cities[crashes_cities$keyformerge=="de kalb",2] = "dekalb" 
+crashes_cities[crashes_cities$keyformerge=="hubbard (hill)",2] = "hubbard" 
+crashes_cities[crashes_cities$keyformerge=="pine forest (orange)",2] = "pine forest"
+crashes_cities[crashes_cities$keyformerge=="rogers (bell)",2] = "rogers"
+crashes_cities[crashes_cities$keyformerge=="st. paul (collin)",2] = "st. paul"
+
+# Cities from receipts file
+
+receipts_cities = data.frame(receiptsdata = unique(str_trim(liquor_receipts$Location.City )))
+receipts_cities$keyformerge = tolower(receipts_cities$receiptsdata) %>% 
+  str_remove_all("village of | city| village| town")
+receipts_cities[receipts_cities$keyformerge == "wichtia falls",2] = "wichita falls"
+
 # Cities from licenses file
 
 licenses_cities = data.frame(licensesdata = unique(liquor_licenses$city))
@@ -47,6 +70,8 @@ popdata_cities$keyformerge = tolower(popdata_cities$popdata) %>%
   str_remove_all("village of | city| village| town")
 
 crosswalk_citynames = left_join(elections_cities, licenses_cities, by = "keyformerge") %>% 
+  left_join(., crashes_cities, by = "keyformerge") %>% 
+  left_join(., receipts_cities, by = "keyformerge") %>% 
   left_join(., popdata_cities, by = "keyformerge") %>% 
   arrange(keyformerge)
 
@@ -63,6 +88,8 @@ crosswalk_cityname_election = crosswalk_citynames %>%
   distinct(electiondata, .keep_all = TRUE)
 
 write.csv(crosswalk_cityname_election,"data/clean/city-name-xwalk/city_name_crosswalk_electiondata.csv", row.names=F)
+
+# sales 
 
 # license data
 crosswalk_cityname_licensesdata = crosswalk_citynames %>% 

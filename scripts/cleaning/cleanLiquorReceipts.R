@@ -57,6 +57,22 @@ post2007 = read.csv("data/raw/liquor-taxes/Mixed_Beverage_Gross_Receipts_2024090
 
 joined_data = bind_rows(pre2007, post2007) %>% 
   distinct() %>% 
+  rename(
+    name = Location.Name,
+    address = Location.Address,
+    city = Location.City,
+    state = Location.State,
+    zip = Location.Zip,
+    county = Location.County,
+    combined_number = TABC.Permit.Number,
+    responsibility_begin_date = Responsibility.Begin.Date,
+    responsibility_end_date = Responsibility.End.Date,
+    obligation_end_date = Obligation.End.Date,
+    liquor_receipts = Liquor.Receipts,
+    wine_receipts = Wine.Receipts,
+    beer_receipts = Beer.Receipts,
+    total_receipts = Total.Receipts
+  ) 
   mutate(
     year = year(Obligation.End.Date),
     month = month(Obligation.End.Date)
@@ -67,6 +83,19 @@ joined_data = bind_rows(pre2007, post2007) %>%
     names_to = "type",
     values_to = "receipts",
     names_transform = list(type = ~gsub(".Receipts", "", .))
+  )
+
+# Three pairs of municipalities share the same name: Lakeside, Oak Ridge, and Reno
+# will modify city name to reflect this
+# Also resolve duplicate cities with different spellings
+
+duplicate_cities = c("lakeside", "oak ridge", "reno")
+
+joined_data = liquor_licenses %>%
+  mutate(
+    city = ifelse(city == "LAKESIDE VILLAGE", "LAKESIDE", city),
+    city = ifelse(city == "LAKESIDE CITY", "LAKESIDE", city),
+    city = ifelse(city == "CANYON CITY", "CANYON", city)
   )
 
 saveRDS(joined_data, "data/clean/liquor-taxes/liquor-receipts.rds")

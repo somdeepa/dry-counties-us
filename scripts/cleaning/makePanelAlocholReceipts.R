@@ -14,9 +14,37 @@ cpi = read.csv("data/raw/economy/price index/South-urban-cpi.csv") %>%
 
 target_cpi = cpi[cpi$year == 2010 & cpi$month == 1, "cpi"]
 
-receipts = receipts %>% 
+final_data = receipts %>% 
   # filtering out 1993 as only data for November and December
   filter(year!= 1993) %>% 
   left_join(., cpi, by = c("year", "month")) %>% 
-  mutate(receipts_adjusted = receipts*target_cpi/cpi)
+  mutate(receipts_adjusted = receipts*target_cpi/cpi,
+         quarter = convert_to_quarter(Obligation.End.Date))
 
+
+
+##----------------------------------------------------------------
+##                      QUATERLY TIME SERIES                     -
+##----------------------------------------------------------------
+
+receipts_quaterly = final_data %>% 
+  group_by(quarter, type) %>% 
+  summarise(
+    year = unique(year),
+    total_receipts = sum(receipts_adjusted)
+  )
+
+write.csv(receipts_quaterly, "data/clean/liquor-taxes/quarterly_receipts.csv", row.names = F)
+
+##----------------------------------------------------------------
+##                      CITY-QUARTER PANEL                       -
+##----------------------------------------------------------------
+
+population
+receipts_city_quarter = final_data %>% 
+  
+  group_by(Location.City, quarter, type) %>% 
+  summarise(
+    total_receipts = sum(receipts_adjusted)
+  )
+  

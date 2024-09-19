@@ -9,6 +9,13 @@ crashdata = lapply(years, extractAllTables)
 crashdata = as.data.frame(do.call(rbind, crashdata))
 crashdata[,2] = as.integer(gsub(",", "", crashdata[,2])) 
 
+# Resolve duplicate cities with different spellings
+
+crashdata = crashdata %>%
+  mutate(
+    city = tolower(city),
+    city = ifelse(city == "canyon city", "canyon", city)
+  )
 # save dataset
 
 write.csv(crashdata, "data/clean/texas_crashes_by_cities_2003_2019.csv")
