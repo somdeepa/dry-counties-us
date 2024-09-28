@@ -94,9 +94,7 @@ city_panel_all_licenses = left_join(all_combinations, business_active_retail, by
   # Fill in missing combinations with 0
   complete(city, quarter = seq(startQuarter, endQuarter), fill = list(total_businesses = 0) ) %>% 
   mutate(
-    year = startYear + floor(quarter/4),
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
+    year = startYear + floor(quarter/4)
   )
 
 write.csv(city_panel_all_licenses, "data/clean/liquor-licenses/quarterly_city_panel_all_licenses.csv", row.names = F)
@@ -128,9 +126,7 @@ city_panel_licenses_types = left_join(all_combinations, business_active_retail, 
   # Fill in missing combinations with 0
   complete(city, category, quarter = seq(startQuarter, endQuarter), fill = list(total_businesses = 0)) %>% 
   mutate(
-    year = startYear + floor(quarter/4),
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
+    year = startYear + floor(quarter/4)
   )
 
 write.csv(city_panel_licenses_types, "data/clean/liquor-licenses/quarterly_city_panel_off_on.csv", row.names = F)
@@ -157,9 +153,7 @@ city_panel_licenses_types = left_join(all_combinations, business_active, by = c(
   # Fill in missing combinations with 0
   complete(city, category_detail, quarter = seq(startQuarter, endQuarter), fill = list(total_businesses = 0)) %>% 
   mutate(
-    year = startYear + floor(quarter/4),
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
+    year = startYear + floor(quarter/4)
   )
 
 write.csv(city_panel_licenses_types, "data/clean/liquor-licenses/quarterly_city_panel_categories.csv", row.names = F)
@@ -192,9 +186,7 @@ county_panel_all_licenses = left_join(all_combinations, business_active, by = "c
   # Fill in missing combinations with 0
   complete(county, quarter = seq(startQuarter, endQuarter), fill = list(total_businesses = 0)) %>% 
   mutate(
-    year = startYear + floor(quarter/4),
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
+    year = startYear + floor(quarter/4)
   )
 
 write.csv(county_panel_all_licenses, "data/clean/liquor-licenses/quarterly_county_panel_all_licenses", row.names = F)
@@ -221,9 +213,7 @@ county_panel_licenses_types = left_join(all_combinations, business_active, by = 
   # Fill in missing combinations with 0
   complete(county, category, quarter = seq(startQuarter, endQuarter), fill = list(total_businesses = 0)) %>% 
   mutate(
-    year = startYear + floor(quarter/4),
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
+    year = startYear + floor(quarter/4)
   )
 
 write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/quarterly_county_panel_off_on", row.names = F)
@@ -250,184 +240,7 @@ county_panel_licenses_types = left_join(all_combinations, business_active, by = 
   # Fill in missing combinations with 0
   complete(county, category_detail, quarter = seq(startQuarter, endQuarter), fill = list(total_businesses = 0)) %>% 
   mutate(
-    year = startYear + floor(quarter/4),
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
+    year = startYear + floor(quarter/4)
   )
 
 write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/quarterly_county_panel_categories", row.names = F)
-
-
-##-----------
-##  BY YEAR  
-##-----------
-
-# CITY LEVEL
-
-## ALL CATEGORIES
-
-all_combinations = expand.grid(
-  city = unique(business_active$city),
-  year = years
-)
-
-# make panel by city
-city_panel_all_licenses = left_join(all_combinations, business_active, by = "city") %>%
-  # Fill missing start_year and stop_year with 2003 and 2019 respectively
-  mutate(start_year = ifelse(is.na(start_year), startYear, start_year),
-         stop_year = ifelse(is.na(stop_year), endYear, stop_year),
-         # Create a flag for active businesses
-         active = between(year, start_year, stop_year)) %>%
-  # Filter active businesses
-  filter(active) %>%
-  # Group by county and year and count businesses
-  group_by(city, year) %>%
-  summarise(total_businesses = n(), .groups = 'drop') %>%
-  # Fill in missing combinations with 0
-  complete(city, year = seq(startYear, endYear), fill = list(total_businesses = 0)) %>% 
-  mutate(
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
-  )
-
-write.csv(city_panel_all_licenses, "data/clean/liquor-licenses/city_panel_all_licenses.csv", row.names = F)
-
-## BY OFF/ON
-
-all_combinations = expand.grid(
-  city = unique(business_active$city),
-  category = unique(business_active$category),
-  year = years
-)
-
-city_panel_licenses_types = left_join(all_combinations, business_active, by = c("city", "category")) %>%
-  # Fill missing start_year and stop_year with 2003 and 2019 respectively
-  mutate(start_year = ifelse(is.na(start_year), startYear, start_year),
-         stop_year = ifelse(is.na(stop_year), endYear, stop_year),
-         # Create a flag for active businesses
-         active = between(year, start_year, stop_year)) %>%
-  # Filter active businesses
-  filter(active) %>%
-  # Group by county and year and count businesses
-  group_by(city, category, year) %>%
-  summarise(total_businesses = n(), .groups = 'drop') %>%
-  # Fill in missing combinations with 0
-  complete(city, category, year = seq(startYear, endYear), fill = list(total_businesses = 0))  mutate(
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
-  )
-
-write.csv(city_panel_licenses_types, "data/clean/liquor-licenses/city_panel_off_on.csv", row.names = F)
-
-## BY CATEGORy_DETAIL
-all_combinations = expand.grid(
-  city = unique(business_active$city),
-  category_detail = unique(business_active$category_detail),
-  year = years
-)
-
-city_panel_licenses_types = left_join(all_combinations, business_active, by = c("city", "category_detail")) %>%
-  # Fill missing start_year and stop_year with 2003 and 2019 respectively
-  mutate(start_year = ifelse(is.na(start_year), startYear, start_year),
-         stop_year = ifelse(is.na(stop_year), endYear, stop_year),
-         # Create a flag for active businesses
-         active = between(year, start_year, stop_year)) %>%
-  # Filter active businesses
-  filter(active) %>%
-  # Group by county and year and count businesses
-  group_by(city, category_detail, year) %>%
-  summarise(total_businesses = n(), .groups = 'drop') %>%
-  # Fill in missing combinations with 0
-  complete(city, category_detail, year = seq(startYear, endYear), fill = list(total_businesses = 0))  mutate(
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
-  )
-
-write.csv(city_panel_licenses_types, "data/clean/liquor-licenses/city_panel_categories.csv", row.names = F)
-
-
-
-# COUNTY LEVEL
-
- 
-## ALL CATEGORIES
-
-countynames = read.csv("data/clean/fips codes/texas_county_fips.csv")
-
-all_combinations = expand.grid(
-  county = countynames$county,
-  year = years
-)
-
-county_panel_all_licenses = left_join(all_combinations, business_active, by = "county") %>%
-  # Fill missing start_year and stop_year with 2003 and 2019 respectively
-  mutate(start_year = ifelse(is.na(start_year), startYear, start_year),
-         stop_year = ifelse(is.na(stop_year), endYear, stop_year),
-         # Create a flag for active businesses
-         active = between(year, start_year, stop_year)) %>%
-  # Filter active businesses
-  filter(active) %>%
-  # Group by county and year and count businesses
-  group_by(county, year) %>%
-  summarise(total_businesses = n(), .groups = 'drop') %>%
-  # Fill in missing combinations with 0
-  complete(county, year = seq(startYear, endYear), fill = list(total_businesses = 0))  mutate(
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
-  )
-
-write.csv(county_panel_all_licenses, "data/clean/liquor-licenses/county_panel_all_licenses", row.names = F)
-
-## BY OFF/ON
-
-all_combinations = expand.grid(
-  county = countynames$county,
-  category = unique(business_active$category),
-  year = years
-)
-
-county_panel_licenses_types = left_join(all_combinations, business_active, by = c("county", "category")) %>%
-  # Fill missing start_year and stop_year with 2003 and 2019 respectively
-  mutate(start_year = ifelse(is.na(start_year), startYear, start_year),
-         stop_year = ifelse(is.na(stop_year), endYear, stop_year),
-         # Create a flag for active businesses
-         active = between(year, start_year, stop_year)) %>%
-  # Filter active businesses
-  filter(active) %>%
-  # Group by county and year and count businesses
-  group_by(county, license_type, year) %>%
-  summarise(total_businesses = n(), .groups = 'drop') %>%
-  # Fill in missing combinations with 0
-  complete(county, category, year = seq(startYear, endYear), fill = list(total_businesses = 0))  mutate(
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
-  )
-
-write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/county_panel_off_on", row.names = F)
-
-## BY CATEGORy_DETAIL
-
-all_combinations = expand.grid(
-  county = countynames$county,
-  license_type = unique(business_active$license_type),
-  year = years
-)
-
-county_panel_licenses_types = left_join(all_combinations, business_active, by = c("county", "category_detail")) %>%
-  # Fill missing start_year and stop_year with 2003 and 2019 respectively
-  mutate(start_year = ifelse(is.na(start_year), startYear, start_year),
-         stop_year = ifelse(is.na(stop_year), endYear, stop_year),
-         # Create a flag for active businesses
-         active = between(year, start_year, stop_year)) %>%
-  # Filter active businesses
-  filter(active) %>%
-  # Group by county and year and count businesses
-  group_by(county, category_detail, year) %>%
-  summarise(total_businesses = n(), .groups = 'drop') %>%
-  # Fill in missing combinations with 0
-  complete(county, category_detail, year = seq(startYear, endYear), fill = list(total_businesses = 0))  mutate(
-    # make an adjusted year to merge with decennial population
-    adjusted_year = round(year/10)*10
-  )
-
-write.csv(county_panel_licenses_types, "data/clean/liquor-licenses/county_panel_categories", row.names = F)

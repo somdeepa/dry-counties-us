@@ -205,5 +205,5 @@ modelsummary(models,
                list("raw" = "FE: quarter", "clean" = "Time fixed effects", fmt = 0)),
              "modelsummary_format_numeric_latex" = "plain",
              align = "lccc",
-             #output = "results/area-exam/FirstStageTable.tex",
+             output = "results/area-exam/FirstStageTable.tex",
              notes = "Each column represents results from a separate OLS regression with city and quarter fixed effects. The dependent variable is equal to the number of active licenses per 1000 population in city $i$ at quarter $t$. Standard errros are clustered at the city level.")

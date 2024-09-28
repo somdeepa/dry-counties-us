@@ -6,13 +6,14 @@
 
 packages = c(
   "foreign", "haven", "readxl", # reading foreign files
-  "dplyr", "tidyr", "readr", "purrr",   # data cleaning
+  "data.table", "dplyr", "tidyr", "readr", "purrr",   # data cleaning
   "lubridate", # dates
   "stringr", 
   "pdftools", "tesseract", "rvest", # scraping data
   "httr", "jsonlite", # downloading data through API
   "modelsummary",  # regression tables
-  "sf",         # reading spatial data
+  "sf",        # workign with spatial data
+  "units", # unit converter
   "ggplot2", "patchwork", "paletteer",   # plotting
   "ggalluvial",
   # Econometric packages

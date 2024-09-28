@@ -1,26 +1,5 @@
 # extracts the crashes data from TXDOT data pdfs (city level)
 # Last updated: 30-05-2024
-
-years = seq(2003, 2019)
-
-# extract data from all files 
-
-crashdata = lapply(years, extractAllTables)
-crashdata = as.data.frame(do.call(rbind, crashdata))
-crashdata[,2] = as.integer(gsub(",", "", crashdata[,2])) 
-
-# Resolve duplicate cities with different spellings
-
-crashdata = crashdata %>%
-  mutate(
-    city = tolower(city),
-    city = ifelse(city == "canyon city", "canyon", city)
-  )
-# save dataset
-
-write.csv(crashdata, "data/clean/texas_crashes_by_cities_2003_2019.csv")
-
-
 ##---------------------------------------------------------------
 ##                          FUNCTIONS                           -
 ##---------------------------------------------------------------
@@ -81,3 +60,31 @@ extractTable = function(page){
   return(df)
   
 }
+
+
+
+##----------------------------------------------------------------
+##                    Extract data from pdfs                     -
+##----------------------------------------------------------------
+
+
+years = seq(2003, 2019)
+
+# extract data from all files 
+
+crashdata = lapply(years, extractAllTables)
+crashdata = as.data.frame(do.call(rbind, crashdata))
+crashdata[,2] = as.integer(gsub(",", "", crashdata[,2])) 
+
+# Resolve duplicate cities with different spellings
+
+crashdata = crashdata %>%
+  mutate(
+    city = tolower(city),
+    city = ifelse(city == "canyon city", "canyon", city)
+  )
+# save dataset
+
+write.csv(crashdata, "data/clean/texas_crashes_by_cities_2003_2019.csv")
+
+

@@ -1,27 +1,19 @@
 \begin{table}
+\centering
 \caption{Status changes and Alochol Licenses in Texas, 1990-2019}
 \centering
-\begin{talltblr}[         %% tabularray outer open
-entry=none,label=none,
-note{}={Each column represents results from a separate OLS regression with city and quarter fixed effects. The dependent variable is equal to the number of active licenses per 1000 population in city \$i\$ at quarter \$t\$. Standard errros are clustered at the city level.},
-]                     %% tabularray outer close
-{                     %% tabularray inner open
-colspec={Q[]Q[]Q[]Q[]},
-column{1}={halign=l,},
-column{2}={halign=c,},
-column{3}={halign=c,},
-column{4}={halign=c,},
-hline{4}={1,2,3,4}{solid, 0.05em, black},
-}                     %% tabularray inner close
+\begin{tabular}[t]{lccc}
 \toprule
-& All & On-Premise & Off-Premise \\ \midrule %% TinyTableHeader
-Status Change==1            & \num{1.301}   & \num{0.063}   & \num{1.146}   \\
-& (\num{0.186}) & (\num{0.051}) & (\num{0.165}) \\
-Mean of Dep. Var.           & 0.872          & 0.856          & 0.856          \\
-N                           & \num{34564}   & \num{35376}   & \num{35376}   \\
-\$R\textasciicircum{}2\$ & \num{0.69}    & \num{0.69}    & \num{0.68}    \\
-City fixed effects          & X              & X              & X              \\
-Time fixed effects          & X              & X              & X              \\
+  & All & On-Premise & Off-Premise\\
+\midrule
+Status Change==1 & \num{1.339} & \num{0.069} & \num{1.153}\\
+ & (\num{0.168}) & (\num{0.045}) & (\num{0.162})\\
+\midrule
+Mean of Dep. Var. & 0.810 & 0.810 & 0.810\\
+N & \num{36384} & \num{36384} & \num{36384}\\
+City fixed effects & X & X & X\\
+Time fixed effects & X & X & X\\
 \bottomrule
-\end{talltblr}
+\multicolumn{4}{l}{\rule{0pt}{1em}Each column represents results from a separate OLS regression with city and quarter fixed effects. The dependent variable is equal to the number of active licenses per 1000 population in city $i$ at quarter $t$. Standard errros are clustered at the city level.}\\
+\end{tabular}
 \end{table}

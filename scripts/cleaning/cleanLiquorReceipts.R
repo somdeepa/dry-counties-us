@@ -55,6 +55,15 @@ post2007 = read.csv("data/raw/liquor-taxes/Mixed_Beverage_Gross_Receipts_2024090
   ) %>% 
   filter(year(Obligation.End.Date) != 2007) # double counting 2007 so filter it out
 
+# put data sets together
+
+# Three pairs of municipalities share the same name: Lakeside, Oak Ridge, and Reno
+# will modify city name to reflect this
+# Also resolve duplicate cities with different spellings
+
+duplicate_cities = c("lakeside", "oak ridge", "reno")
+
+
 joined_data = bind_rows(pre2007, post2007) %>% 
   distinct() %>% 
   rename(
@@ -72,30 +81,29 @@ joined_data = bind_rows(pre2007, post2007) %>%
     wine_receipts = Wine.Receipts,
     beer_receipts = Beer.Receipts,
     total_receipts = Total.Receipts
-  ) 
-  mutate(
-    year = year(Obligation.End.Date),
-    month = month(Obligation.End.Date)
   ) %>% 
-  # wide-to-long
-  pivot_longer(
-    cols = ends_with("Receipts"),
-    names_to = "type",
-    values_to = "receipts",
-    names_transform = list(type = ~gsub(".Receipts", "", .))
-  )
-
-# Three pairs of municipalities share the same name: Lakeside, Oak Ridge, and Reno
-# will modify city name to reflect this
-# Also resolve duplicate cities with different spellings
-
-duplicate_cities = c("lakeside", "oak ridge", "reno")
-
-joined_data = liquor_licenses %>%
   mutate(
+    year = year(obligation_end_date),
+    month = month(obligation_end_date),
+    quarter = sapply(obligation_end_date, convert_to_quarter),
+    
+    # combine beer and wine
+    beer_wine_receipts = beer_receipts + wine_receipts,
+    
+    # city name corrections
+    city = str_trim(city),
+    city = ifelse(city %in% duplicate_cities, str_c(city, " (", county, ")"), city),
     city = ifelse(city == "LAKESIDE VILLAGE", "LAKESIDE", city),
     city = ifelse(city == "LAKESIDE CITY", "LAKESIDE", city),
     city = ifelse(city == "CANYON CITY", "CANYON", city)
+  ) %>% 
+  select(-c(beer_receipts, wine_receipts)) %>% 
+  # wide-to-long
+  pivot_longer(
+    cols = ends_with("receipts"),
+    names_to = "type",
+    values_to = "receipts",
+    names_transform = list(type = ~gsub("_receipts", "", .))
   )
 
 saveRDS(joined_data, "data/clean/liquor-taxes/liquor-receipts.rds")

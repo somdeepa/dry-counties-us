@@ -3,14 +3,11 @@
 ##         Merge Election Results and City/County names         ##
 ##################################################################
 
-crosswalk_cityname_election = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_electiondata.csv")
+crosswalk_citynames = read.csv("data/clean/city-name-xwalk/city_name_crosswalk.csv")
 
 electiondata = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv")
 
-crosswalk_cityname_popdata = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_popdata.csv")
-
-populationdata = read.csv("data/clean/population/texas_population_by_cities_decennial.csv") %>% 
-  left_join(crosswalk_cityname_popdata, join_by(city == popdata))
+populationdata = read.csv("data/clean/population/texas_population_by_cities_1990_2023.csv")
 
 policychanges = electiondata %>% 
   filter(!is.na(city) & result == "passed" & status_before == "dry") %>% 
@@ -27,37 +24,36 @@ policychanges = electiondata %>%
 policychanges = policychanges %>% 
   mutate(
     id = seq(1:nrow(policychanges))
-  )%>% 
-  left_join(crosswalk_cityname_election, join_by(city == electiondata))
+  )
 
 # Counties dry at the end of 2019
 # dry_counties = c("Borden", "Kent", "Throckmorton", "Hemphill", "Roberts")
 
-crosswalk_cityname_licensesdata = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_licensesdata.csv")
-
-
 # Merge for CITY-QUARTER-ALL
 
 
-city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_all_licenses.csv") %>% 
-  left_join(crosswalk_cityname_licensesdata, join_by(city == licensesdata))
+city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_all_licenses.csv")
   
 
 all_combinations = expand.grid(
   city = policychanges$city,
   quarter = quarters
 ) %>% 
-  left_join(crosswalk_cityname_election, join_by(city == electiondata))
+  left_join(crosswalk_citynames, join_by(city == electiondata)) %>% 
+  mutate(year = startYear + floor(quarter/4))
 
 final_panel = all_combinations %>% 
   # join license data
-  left_join(city_licenses_panel, join_by(keyformerge, quarter)) %>% 
+  left_join(city_licenses_panel, join_by(licensesdata==city, quarter, year)) %>% 
+  
   # change NAs to 0 (Missing data here => true zeros)
   mutate(total_businesses = ifelse(is.na(total_businesses), 0, total_businesses)) %>% 
+  
   # add policy changes
-  left_join(policychanges, by = "keyformerge") %>% 
+  left_join(policychanges, by = "city") %>% 
+  
   # add population 
-  left_join(populationdata, join_by(keyformerge, adjusted_year == year)) %>% 
+  left_join(populationdata, join_by(popdata == city, year)) %>% 
   mutate(
     # calculate licenses per 1000 population
     licensepop = total_businesses/population*1000,
@@ -72,21 +68,22 @@ write.csv(final_panel, "data/clean/merged/licenses-elections/all_licenses_city_q
 
 # Merge for CITY-QUARTER-OFF/ON
 
-city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_off_on.csv") %>% 
-  left_join(crosswalk_cityname_licensesdata, join_by(city == licensesdata))
+city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_off_on.csv")
 
 # On premise
 city_licenses_panel_on = city_licenses_panel %>% filter(category== "On-Premise")
 
 final_panel = all_combinations %>% 
   # join license data
-  left_join(city_licenses_panel_on, join_by(keyformerge, quarter)) %>% 
+  left_join(city_licenses_panel_on, join_by(licensesdata==city, quarter, year)) %>% 
+  
   # change NAs to 0 (Missing data here => true zeros)
   mutate(total_businesses = ifelse(is.na(total_businesses), 0, total_businesses)) %>% 
+  
   # add policy changes
-  left_join(policychanges, by = "keyformerge") %>% 
+  left_join(policychanges, by = "city") %>% 
   # add population
-  left_join(populationdata, join_by(keyformerge, adjusted_year == year)) %>% 
+  left_join(populationdata, join_by(popdata == city, year)) %>% 
   mutate(
     # calculate licenses per 1000 population
     licensepop = total_businesses/population*1000,
@@ -104,13 +101,13 @@ city_licenses_panel_off = city_licenses_panel %>% filter(category== "Off-Premise
 
 final_panel = all_combinations %>% 
   # join license data
-  left_join(city_licenses_panel_off, join_by(keyformerge, quarter)) %>% 
+  left_join(city_licenses_panel_off, join_by(licensesdata==city, quarter, year)) %>% 
   # change NAs to 0 (Missing data here => true zeros)
   mutate(total_businesses = ifelse(is.na(total_businesses), 0, total_businesses)) %>% 
   # add policy changes
-  left_join(policychanges, by = "keyformerge") %>% 
+  left_join(policychanges, by = "city") %>% 
   # add population figure
-  left_join(populationdata, join_by(keyformerge, adjusted_year == year)) %>% 
+  left_join(populationdata, join_by(popdata == city, year)) %>% 
   mutate(
     # calculate licenses per 1000 population
     licensepop = total_businesses/population*1000,
@@ -118,9 +115,7 @@ final_panel = all_combinations %>%
     treatment_quarter = ifelse(quarter >= first_policy_change_quarter, 1, 0),
     # create event study dummy
     periods_from_treatment = quarter - first_policy_change_quarter
-  ) %>% 
-  group_by(keyformerge) %>% 
-  ungroup()
+  )
 
 write.csv(final_panel, "data/clean/merged/licenses-elections/off_premise_licenses_city_quarter.csv", row.names = F)
 

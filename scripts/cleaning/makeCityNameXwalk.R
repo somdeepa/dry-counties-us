@@ -9,7 +9,7 @@
 
 elections = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv")
 
-populationdata = read.csv("data/clean/population/texas_population_by_cities_decennial.csv")
+populationdata = read.csv("data/clean/population/texas_population_by_cities_1990_2023.csv")
 
 liquor_licenses = read.csv("data/clean/liquor-licenses/all-liquor-licenses.csv")
 
@@ -19,7 +19,7 @@ crashes_data = read.csv("data/clean/outcomes/crashes/texas_crashes_by_cities_200
 
 # Cities from crashes file
 
-crashes_cities = data.frame(crashesdata = unique(tolower(crashes_data$city)))
+crashes_cities = data.frame(crashesdata = unique(crashes_data$city))
 crashes_cities$keyformerge = tolower(crashes_cities$crashesdata) %>% 
   str_remove_all("village of | city| village| town")
 crashes_cities[crashes_cities$keyformerge=="aurora (wise)",2] = "aurora" 
@@ -31,7 +31,7 @@ crashes_cities[crashes_cities$keyformerge=="st. paul (collin)",2] = "st. paul"
 
 # Cities from receipts file
 
-receipts_cities = data.frame(receiptsdata = unique(str_trim(liquor_receipts$Location.City )))
+receipts_cities = data.frame(receiptsdata = unique(liquor_receipts$city))
 receipts_cities$keyformerge = tolower(receipts_cities$receiptsdata) %>% 
   str_remove_all("village of | city| village| town")
 receipts_cities[receipts_cities$keyformerge == "wichtia falls",2] = "wichita falls"
@@ -64,10 +64,11 @@ elections_cities[elections_cities$keyformerge=="new fairfield", 2] = "new fairvi
 
 # Cities from census population file
 
-popdata_cities = data.frame(popdata = unique(populationdata$city)) %>% 
-  filter(!grepl("(pt\\.|County)", popdata, ignore.case = TRUE))
+popdata_cities = data.frame(popdata = unique(populationdata$city))
 popdata_cities$keyformerge = tolower(popdata_cities$popdata) %>% 
   str_remove_all("village of | city| village| town")
+popdata_cities[popdata_cities$keyformerge=="de kalb", 2] = "dekalb"
+popdata_cities[popdata_cities$keyformerge=="st. jo", 2] = "saint jo"
 
 crosswalk_citynames = left_join(elections_cities, licenses_cities, by = "keyformerge") %>% 
   left_join(., crashes_cities, by = "keyformerge") %>% 
@@ -80,7 +81,7 @@ write.csv(crosswalk_citynames, "data/clean/city-name-xwalk/city_name_crosswalk.c
 # Will create separate Xwalk file for each dataset
 # resolves issue: when two cities have different spellings in the same dataset,
 # I have mapped them to the same key. But when performing the final merges, I get
-# duplicates for those cities in other columns. Thus is creatin issues during merge.
+# duplicates for those cities in other columns. Thus is creating issues during merge.
 
 # election data
 crosswalk_cityname_election = crosswalk_citynames %>% 

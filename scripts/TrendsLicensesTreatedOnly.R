@@ -61,57 +61,68 @@ ggplot(combined_data, aes(x = year, y = total_businesses, color = category, grou
 ggsave("results/weekly updates/4-9/licenses_over_time_retail_only_treated_only.png", device = "png")
 
 
-##----------------------------------------------------------------
-##                        R-D style graphs                       -
-##---------------------------------------------------------------
+##----------------------
+##  PER CAPITA VERSION  
+##----------------------
 
-data = read.csv("data/clean/merged/licenses-elections/RDpanel_quaterly_city.csv")
+crosswalk_citynames = read.csv("data/clean/city-name-xwalk/city_name_crosswalk.csv")
 
-time_periods = c(-1,4)
+electiondata = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv")
 
-bin = 1
-temp = data %>% 
-  filter(
-    periods_from_election %in% time_periods
+populationdata = read.csv("data/clean/population/texas_population_by_cities_1990_2023.csv")
+
+policychanges = electiondata %>% 
+  filter(!is.na(city) & result == "passed" & status_before == "dry") %>% 
+  mutate(
+    # clean up dates
+    election_date = as.Date(election_date, format = "%Y-%m-%d"),
+    election_year = year(election_date),
   ) %>% 
-  #(!city %in% c("Winona", "Coffee City") ) %>% 
-  #filter(licensepop<5) %>% 
-  #filter(for_vote_share<.92) %>% 
-  # binning vote shares
-  mutate(for_vote_share = floor(for_vote_share*100/bin)*bin) %>% 
-  #filter(for_vote_share==31)
-  #filter(between(for_vote_share, 20, 80)) %>% 
-  group_by(for_vote_share, periods_from_election) %>% 
-    summarise(
-      n = n(),
-      mean_licensepop = mean(licensepop, na.rm = T),
-      Lower = mean_licensepop - 1.96*sd(licensepop, na.rm=T)/sqrt(n()),
-      Upper = mean_licensepop + 1.96*sd(licensepop, na.rm=T)/sqrt(n()),
-    )
+  group_by(city) %>% 
+  summarise(
+    first_policy_change = min(election_year),
+    first_policy_change_quarter = min(sapply(election_date, convert_to_quarter))
+  )
+policychanges = policychanges %>% 
+  mutate(
+    id = seq(1:nrow(policychanges))
+  )
+
+city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_off_on.csv") %>% 
+  pivot_wider(names_from = category, values_from = total_businesses) %>% 
+  mutate(Total = `Off-Premise` + `On-Premise`) %>% 
+  pivot_longer(
+    cols = `Off-Premise`:Total,
+    names_to = "category", 
+    values_to = "total_businesses") %>%
+  left_join(., crosswalk_citynames, join_by(city == licensesdata)) %>% 
   
+  # filter out treated cities
+  filter(electiondata %in% policychanges$city) %>% 
+  
+  # join population
+  left_join(., populationdata, join_by(popdata == city, year)) %>% 
+  # aggregate up year
+  group_by(category, year) %>% 
+  summarise(
+    total_businesses = sum(total_businesses, na.rm = T),
+    population = sum(population, na.rm = T)
+  ) %>% 
+  mutate(licensepop = total_businesses/population*1000)
 
+ggplot(city_licenses_panel, aes(x = year, y = licensepop, color = category, group = category)) +
+  geom_line(size =0.8) +
+  geom_point(aes(shape = category), size = 1.5) +
+  labs(
+    x = "",
+    y = "",
+    title = "Total # of Retail Alcohol Licenses in Treated Cities, 1990-2019"
+  ) +
+  scale_color_paletteer_d("ggthemr::greyscale") +
+  theme_bw() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
 
-
-ggplot(temp) +
-  #geom_vline(xintercept = 50, linetype = "dashed", color = "red", linewidth = 0.5) +
-  geom_hline(yintercept = 0) +
-  #geom_errorbar(mapping = aes(x = for_vote_share, ymin = Lower, ymax = Upper),
-  #             width = 0.3, linewidth =0.5) +
-  geom_point(aes(x = for_vote_share, y = mean_licensepop), size = 1, shape = 21, fill = "grey") +
-  geom_smooth(aes(x = for_vote_share, y = mean_licensepop), 
-              method = "lm", formula = y ~ x, 
-              data = subset(temp, for_vote_share < 50), 
-              color = "black", se = T) +
-  geom_smooth(aes(x = for_vote_share, y = mean_licensepop), 
-              method = "lm", formula = y ~ x, 
-              data = subset(temp, for_vote_share >= 50), 
-              color = "black", se = T) +
-  labs(x = "For vote percentage",
-       y = "Licenses per 1000 population") +
-  facet_wrap(~periods_from_election, ncol = 3,
-             labeller = labeller(periods_from_election = function(x) {
-               paste("Quarters from election =", x)
-             })) +
-  theme_bw(base_size = 16)
-
-ggsave("results/weekly updates/11-9/rd_style_full.png", device = "png")
+ggsave("results/weekly updates/25-9/licenses_over_time_per_capita_retail_only_treated_only.png", device = "png")

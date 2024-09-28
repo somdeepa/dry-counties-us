@@ -18,11 +18,10 @@ population = population %>% group_by(countyfips, year) %>%
 
 write.csv(population, "data/clean/population/texas_population_by_county_1969_2022.csv", row.names = F)
 
-# population only for ages 20-34
+# drinking age population
 
-population_young = data %>% filter(age %in% c(5,6,7)) %>% 
+population_drinking_age = data %>% filter(age >5) %>% 
   group_by(countyfips, year) %>% 
-  summarise(population_young= sum(population)) %>% 
-  filter(year > 1996)
+  summarise(population= sum(population))
 
-write.csv(population_young, "data/clean/population/texas_population_by_county_1997_2022_ages_20-34.csv", row.names = F)
+write.csv(population_drinking_age, "data/clean/population/texas_population_by_county_1969_2022_drinking_age.csv", row.names = F)

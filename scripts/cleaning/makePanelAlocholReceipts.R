@@ -19,7 +19,7 @@ final_data = receipts %>%
   filter(year!= 1993) %>% 
   left_join(., cpi, by = c("year", "month")) %>% 
   mutate(receipts_adjusted = receipts*target_cpi/cpi,
-         quarter = convert_to_quarter(Obligation.End.Date))
+         quarter = convert_to_quarter(obligation_end_date))
 
 
 
