@@ -6,3 +6,6 @@
 .quarto
 data/raw/
 data/clean/
+results
+IRB
+literature
