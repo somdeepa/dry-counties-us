@@ -1,0 +1,19 @@
+\begin{table}
+\centering
+\caption{Status changes and Alochol Licenses in Texas, 1990-2019}
+\centering
+\begin{tabular}[t]{lccc}
+\toprule
+  & All & On-Premise & Off-Premise\\
+\midrule
+Status Change==1 & \num{1.339} & \num{0.069} & \num{1.153}\\
+ & (\num{0.168}) & (\num{0.045}) & (\num{0.162})\\
+\midrule
+Mean of Dep. Var. & 0.810 & 0.810 & 0.810\\
+N & \num{36384} & \num{36384} & \num{36384}\\
+City fixed effects & X & X & X\\
+Time fixed effects & X & X & X\\
+\bottomrule
+\multicolumn{4}{l}{\rule{0pt}{1em}Each column represents results from a separate OLS regression with city and quarter fixed effects. The dependent variable is equal to the number of active licenses per 1000 population in city $i$ at quarter $t$. Standard errros are clustered at the city level.}\\
+\end{tabular}
+\end{table}
