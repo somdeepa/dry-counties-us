@@ -65,11 +65,15 @@ ggsave("results/weekly updates/4-9/licenses_over_time_retail_only_treated_only.p
 ##  PER CAPITA VERSION  
 ##----------------------
 
-crosswalk_citynames = read.csv("data/clean/city-name-xwalk/city_name_crosswalk.csv")
+crosswalk_citynames_elections = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_electiondata.csv")
 
-electiondata = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv")
+electiondata = read.csv("data/clean/elections-data/elections-data-97-2020-cleaned.csv") %>% 
+  left_join(crosswalk_citynames_elections, join_by(city==electiondata))
 
-populationdata = read.csv("data/clean/population/texas_population_by_cities_1990_2023.csv")
+crosswalk_citynames_popdata = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_popdata.csv")
+
+populationdata = read.csv("data/clean/population/texas_population_by_cities_1990_2023.csv") %>% 
+  left_join(crosswalk_citynames_popdata, join_by("city" == "popdata"))
 
 policychanges = electiondata %>% 
   filter(!is.na(city) & result == "passed" & status_before == "dry") %>% 
@@ -80,28 +84,32 @@ policychanges = electiondata %>%
   ) %>% 
   group_by(city) %>% 
   summarise(
+    keyformerge = unique(keyformerge),
     first_policy_change = min(election_year),
     first_policy_change_quarter = min(sapply(election_date, convert_to_quarter))
   )
-policychanges = policychanges %>% 
-  mutate(
-    id = seq(1:nrow(policychanges))
-  )
 
-city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_off_on.csv") %>% 
+
+crosswalk_citynames_licenses = read.csv("data/clean/city-name-xwalk/city_name_crosswalk_licensesdata.csv")
+
+city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_off_on.csv")
+
+data = city_licenses_panel %>% 
   pivot_wider(names_from = category, values_from = total_businesses) %>% 
   mutate(Total = `Off-Premise` + `On-Premise`) %>% 
   pivot_longer(
     cols = `Off-Premise`:Total,
     names_to = "category", 
     values_to = "total_businesses") %>%
-  left_join(., crosswalk_citynames, join_by(city == licensesdata)) %>% 
+  left_join(., crosswalk_citynames_licenses, join_by(city == licensesdata)) %>% 
+  mutate(category = factor(category, levels = c("Off-Premise", "On-Premise", "Total")))
   
-  # filter out treated cities
-  filter(electiondata %in% policychanges$city) %>% 
+temp = data %>%   
+# filter out treated cities
+  filter(keyformerge %in% policychanges$keyformerge) %>% 
   
   # join population
-  left_join(., populationdata, join_by(popdata == city, year)) %>% 
+  left_join(populationdata, join_by(keyformerge, year)) %>% 
   # aggregate up year
   group_by(category, year) %>% 
   summarise(
@@ -110,15 +118,16 @@ city_licenses_panel = read.csv("data/clean/liquor-licenses/quarterly_city_panel_
   ) %>% 
   mutate(licensepop = total_businesses/population*1000)
 
-ggplot(city_licenses_panel, aes(x = year, y = licensepop, color = category, group = category)) +
+p1 = ggplot(temp, aes(x = year, y = licensepop, color = category, group = category)) +
   geom_line(size =0.8) +
   geom_point(aes(shape = category), size = 1.5) +
   labs(
     x = "",
     y = "",
-    title = "Total # of Retail Alcohol Licenses in Treated Cities, 1990-2019"
+    title = "Alcohol licenses per capita in cities with status change"
   ) +
-  scale_color_paletteer_d("ggthemr::greyscale") +
+  scale_color_paletteer_d("awtools::gpalette") +
+  scale_y_continuous(limits = c(0,3)) +
   theme_bw() +
   theme(
     legend.title = element_blank(),
@@ -126,3 +135,51 @@ ggplot(city_licenses_panel, aes(x = year, y = licensepop, color = category, grou
   )
 
 ggsave("results/weekly updates/25-9/licenses_over_time_per_capita_retail_only_treated_only.png", device = "png")
+
+
+##---------------------------------------------------------------
+##                    ALWAYS TREATED CITIES                     -
+##---------------------------------------------------------------
+
+
+# cities that were dry during or any point after 1997
+
+excluded_cities = electiondata %>% 
+  filter(!is.na(city) & status_before == "dry") %>% 
+  select(city, keyformerge) %>% 
+  unique()
+
+temp = data %>% 
+  
+  # exclude treated cities
+  filter(!keyformerge %in% excluded_cities$keyformerge) %>%
+  
+  # join population
+  left_join(populationdata, join_by(keyformerge, year)) %>% 
+  # aggregate up year
+  group_by(category, year) %>% 
+  summarise(
+    total_businesses = sum(total_businesses, na.rm = T),
+    population = sum(population, na.rm = T)
+  ) %>% 
+  mutate(licensepop = total_businesses/population*1000)
+
+p2 = ggplot(temp, aes(x = year, y = licensepop, color = category, group = category)) +
+  geom_line(size =0.8) +
+  geom_point(aes(shape = category), size = 1.5) +
+  labs(
+    x = "",
+    y = "",
+    title = "Alcohol licenses per capita in already wet cities"
+  ) +
+  scale_color_paletteer_d("awtools::gpalette") +
+  scale_y_continuous(limits = c(0,3)) +
+  theme_bw() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+p2+p1
+
+ggsave("results/weekly updates/2-10/licenses_over_time_per_capita_treated_vs_wet.png", width = 12, height = 5, device = "png")

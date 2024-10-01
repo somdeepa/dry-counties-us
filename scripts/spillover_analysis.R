@@ -25,7 +25,7 @@ distance_matrix = st_distance(city_centroids) %>%
 rownames(distance_matrix) = city_boundaries$id
 colnames(distance_matrix) = city_boundaries$id
 
-threshold=set_units(10, "miles")
+threshold=set_units(5, "miles")
 
 threshold_matrix = ifelse(distance_matrix<= threshold, 1, 0)
 diag(threshold_matrix) = 0
@@ -126,29 +126,33 @@ final_panel = all_combinations %>%
     treat = ifelse(nearby_status_change_count>0,1,0),
     # calculate licenses per 1000 population
     licensepop = total_businesses/population*1000,
-    # create treatment dummy
-    treatment_quarter = ifelse(quarter >= first_policy_change_quarter, 1, 0),
+    # create post indicator
+    post_treatment_quarter = ifelse(quarter >= first_policy_change_quarter, 1, 0),
     # create event study dummy (assigning 0 to never-treated)
     periods_from_treatment = ifelse(nearby_status_change_count>0,
                                     quarter - first_policy_change_quarter,0)
   )
 
-
 mod.twfe = feols(
+  licensepop ~ post_treatment_quarter | keyformerge + quarter,
+  cluster = "keyformerge",
+  data = final_panel
+)
+
+
+mod.es = feols(
   licensepop ~ i(periods_from_treatment, treat, ref = -1) | keyformerge + quarter,
   cluster = "keyformerge",
   data = final_panel
 )
 
-png("results/weekly updates/2-10/event_study_plot_spillover_5mi.png", width = 600, height = 450)
+png("results/weekly updates/2-10/event_study_plot_spillover_10mi.png", width = 600, height = 500)
 
-iplot(mod.twfe,  xlim = c(-20, 20), ylim = c(-3, 2))
+iplot(mod.es,  xlim = c(-20, 20), ylim = c(-3, 2))
 
 dev.off()  # Close the device
 
 
-
-png("results/weekly updates/2-10/spillover_event_study_15mi")
 
 # CS estimator
 
@@ -227,7 +231,69 @@ ggplot(summarytable) +
        y = "Residuals") +
   theme_minimal()
 
+ggsave("results/weekly updates/2-10/raw_data_residual_plot_spillover_10mi.png", width = 6, height = 5, device = "png")
+
 ##---------------------------------------------------------------
 ##              CONTINUOUS DISTANCE SPECIFICATION               -
 ##---------------------------------------------------------------
 
+# build of panel of city status (only treated cities)
+
+is_dry = expand.grid(
+  keyformerge = policychanges$keyformerge,
+  quarter = quarters
+) %>% 
+  left_join(policychanges, by = "keyformerge") %>% 
+  mutate(
+    dry = ifelse(quarter<first_policy_change_quarter, 1, 0)
+  )
+
+all_combinations = expand.grid(
+  id = always_treated_cities$id,
+  quarter = quarters
+)
+
+nearestDryCity = function(cityid, curr_quarter){
+  neighbors = colnames(threshold_matrix)[threshold_matrix[cityid, ] == 1]
+  
+  # dry cities in current quarter
+  dry_cities_current = is_dry %>% filter(quarter==curr_quarter & dry == 1 )
+  
+  # count number of dry cities within the threshold
+  dry_neighbors = sum(colnames(threshold_matrix)[threshold_matrix[cityid, ] == 1] %in% dry_cities_current$id)
+  
+  # calculate minimum distance from a dry city
+  min_distance = min(distance_matrix[cityid, dry_cities_current$id], na.rm = T)
+  
+  df = data.frame(id = cityid, 
+                  quarter = curr_quarter,
+                  dry_neighbors = dry_neighbors,
+                  min_distance = min_distance
+  )
+  return(df)
+}
+
+temp = as.data.frame(do.call
+                     (rbind, mapply(nearestDryCity, 
+                                    cityid = all_combinations$id, 
+                                    curr_quarter = all_combinations$quarter, 
+                                    SIMPLIFY = FALSE)))
+
+# add back to the earlier panel
+
+data = final_panel %>% 
+  left_join(temp, join_by(id, quarter))
+
+# continuous distance model
+
+mod.cont1 = feols(
+  licensepop ~ min_distance | keyformerge + quarter,
+  cluster = "keyformerge",
+  data = final_panel
+)
+
+mod.cont2 = feols(
+  licensepop ~ post_treatment_quarter + min_distance | keyformerge + quarter,
+  cluster = "keyformerge",
+  data = final_panel
+)
