@@ -80,8 +80,8 @@ crashdata[,2] = as.integer(gsub(",", "", crashdata[,2]))
 
 crashdata = crashdata %>%
   mutate(
-    city = tolower(city),
-    city = ifelse(city == "canyon city", "canyon", city)
+    city = tolower(city)
+    #city = ifelse(city == "canyon city", "canyon", city)
   )
 # save dataset
 

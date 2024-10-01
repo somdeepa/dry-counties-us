@@ -93,9 +93,9 @@ joined_data = bind_rows(pre2007, post2007) %>%
     # city name corrections
     city = str_trim(city),
     city = ifelse(city %in% duplicate_cities, str_c(city, " (", county, ")"), city),
-    city = ifelse(city == "LAKESIDE VILLAGE", "LAKESIDE", city),
-    city = ifelse(city == "LAKESIDE CITY", "LAKESIDE", city),
-    city = ifelse(city == "CANYON CITY", "CANYON", city)
+    #city = ifelse(city == "LAKESIDE VILLAGE", "LAKESIDE", city),
+    #city = ifelse(city == "LAKESIDE CITY", "LAKESIDE", city),
+    #city = ifelse(city == "CANYON CITY", "CANYON", city)
   ) %>% 
   select(-c(beer_receipts, wine_receipts)) %>% 
   # wide-to-long

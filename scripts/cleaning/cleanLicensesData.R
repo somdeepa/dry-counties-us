@@ -86,7 +86,7 @@ duplicate_cities = c("lakeside", "oak ridge", "reno")
 
 liquor_licenses = liquor_licenses %>%
   mutate(
-    city = ifelse(city == "lake side", "lakeside", city),
+    #city = ifelse(city == "lake side", "lakeside", city),
     city = ifelse(city %in% duplicate_cities, str_c(city, " (", county, ")"), city)
   )
 
