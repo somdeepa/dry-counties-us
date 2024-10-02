@@ -25,7 +25,7 @@ distance_matrix = st_distance(city_centroids) %>%
 rownames(distance_matrix) = city_boundaries$id
 colnames(distance_matrix) = city_boundaries$id
 
-threshold=set_units(5, "miles")
+threshold=set_units(10, "miles")
 
 threshold_matrix = ifelse(distance_matrix<= threshold, 1, 0)
 diag(threshold_matrix) = 0
@@ -146,7 +146,7 @@ mod.es = feols(
   data = final_panel
 )
 
-png("results/weekly updates/2-10/event_study_plot_spillover_10mi.png", width = 600, height = 500)
+png("results/weekly updates/2-10/event_study_plot_spillover_20mi.png", width = 600, height = 500)
 
 iplot(mod.es,  xlim = c(-20, 20), ylim = c(-3, 2))
 
@@ -289,11 +289,36 @@ data = final_panel %>%
 mod.cont1 = feols(
   licensepop ~ min_distance | keyformerge + quarter,
   cluster = "keyformerge",
-  data = final_panel
+  data = data
 )
 
 mod.cont2 = feols(
-  licensepop ~ post_treatment_quarter + min_distance | keyformerge + quarter,
+  licensepop ~ dry_neighbors | keyformerge + quarter,
   cluster = "keyformerge",
-  data = final_panel
+  data = data
 )
+
+mod.cont3 = feols(
+  licensepop ~ post_treatment_quarter + min_distance + dry_neighbors | keyformerge + quarter,
+  cluster = "keyformerge",
+  data = data
+)
+
+models = list(mod.twfe,mod.cont2, mod.cont1, mod.cont3)
+
+modelsummary(models,
+             #title = "",
+             coef_rename = c("post_treatment_quarter" = "Post indicator",
+                             "min_distance" = "Distance from nearest dry city",
+                             "dry_neighbors" = "No. of dry neighbors"),
+             gof_omit = 'R2 |R2 Within|R2 Within Adj.|AIC|BIC|RMSE|Std',
+             gof_map = list(
+               list("raw" = "Mean of DV", "clean" = "Mean of Dep. Var.", fmt = 3),
+               list("raw" = "nobs", "clean" = "N", "fmt" = 0),
+               list("raw" = "adj.r.squared", "clean" = "$R^2$", "fmt" = 2),
+               list("raw" = "FE: keyformerge", "clean" = "City fixed effects", fmt = 0),
+               list("raw" = "FE: quarter", "clean" = "Time fixed effects", fmt = 0)),
+             "modelsummary_format_numeric_latex" = "plain",
+             align = "lcccc"
+             #output = "results/weekly updates/2-10/table.html"
+             )
