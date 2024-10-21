@@ -12,6 +12,9 @@ data = read.csv("data/clean/merged/licenses-elections/all_licenses_city_quarter.
 model.twfe.all = feols(licensepop ~ treatment_quarter|id +quarter,
                      data = data, cluster = "id")
 
+# calculate pre-treatment mean
+my0.all = mean(data$licensepop[data$treatment_quarter == 0], na.rm = T)
+
 print(model.twfe.all)
 
 # Event Study-Calloway Sant'Anna
@@ -74,6 +77,9 @@ data = read.csv("data/clean/merged/licenses-elections/on_premise_licenses_city_q
 model.twfe.on = feols(licensepop ~ treatment_quarter|id +quarter,
                      data = data, cluster = "id")
 
+# calculate pre-treatment mean
+my0.on = mean(data$licensepop[data$treatment_quarter == 0], na.rm = T)
+
 print(model.twfe.on)
 
 # Event Study-Calloway Sant'Anna
@@ -135,6 +141,9 @@ data = read.csv("data/clean/merged/licenses-elections/off_premise_licenses_city_
 model.twfe.off = feols(licensepop ~ treatment_quarter|id +quarter,
                      data = data, cluster = "id")
 
+# calculate pre-treatment mean
+my0.off = mean(data$licensepop[data$treatment_quarter == 0], na.rm = T)
+
 print(model.twfe.off)
 
 # Event Study-Calloway Sant'Anna
@@ -193,17 +202,27 @@ ggsave("results/area-exam/license_event_study_raw_data_off_premise_quaterly.png"
 
 models = list(All = model.twfe.all, `On-Premise` = model.twfe.on, `Off-Premise` = model.twfe.off)
 
+# create row for pre-treatment means
+pre_treatment_means <- data.frame(matrix(c(
+  "Pre-treatment mean", 
+  round(my0.all, 3), 
+  round(my0.on, 3), 
+  round(my0.off, 3)
+), nrow = 1))
+
+attr(pre_treatment_means, 'position') = 3
+
 modelsummary(models,
-             title = "Status changes and Alochol Licenses in Texas, 1990-2019",
+             title = "Status changes and Alcohol Licenses in Texas, 1990-2019",
              coef_rename = c("treatment_quarter" = "Status Change==1"),
              gof_omit = 'R2 Adj.|R2 Within|R2 Within Adj.|AIC|BIC|RMSE|Std',
+             add_rows = pre_treatment_means,
              gof_map = list(
-               list("raw" = "Mean(DV)", "clean" = "Mean of Dep. Var.", fmt = 3),
                list("raw" = "nobs", "clean" = "N", "fmt" = 0),
                list("raw" = "r.squared", "clean" = "$R^2$", "fmt" = 2),
                list("raw" = "FE: id", "clean" = "City fixed effects", fmt = 0),
                list("raw" = "FE: quarter", "clean" = "Time fixed effects", fmt = 0)),
              "modelsummary_format_numeric_latex" = "plain",
              align = "lccc",
-             output = "results/area-exam/FirstStageTable.tex",
+             output = "results/area-exam/FirstStageTable.docx",
              notes = "Each column represents results from a separate OLS regression with city and quarter fixed effects. The dependent variable is equal to the number of active licenses per 1000 population in city $i$ at quarter $t$. Standard errros are clustered at the city level.")

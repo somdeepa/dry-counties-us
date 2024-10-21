@@ -58,9 +58,3 @@ convert_to_quarter <- function(date) {
   
   return(total_quarters)
 }
-
-# Add mean of dependent variable to fixest
-
-glance_custom.fixest <- function(x, ...) {
-  data.table::data.table("Mean(DV)" = sprintf("%.3f",as.numeric(fitstat(x, type = "my"))))
-}
